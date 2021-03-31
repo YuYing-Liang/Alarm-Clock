@@ -69,10 +69,11 @@ int convert_to_decimal(in pins, out pins, int wait_time) {
     my_time = millis();
     if (my_time-start > wait_time or input == "#" or input == "*"){ //condition to exit the wait
       waiting = 0;
-    } else { // assuming input is a valid digit
-      input = keypad.getKey();
+    } else if (input != NO_KEY) { // assuming input is a valid digit
       running_count = running_count * 10 + (input-"0");
     }
+    // in the case that input == NO_KEY just get the next input
+    input = keypad.getKey();
   }
   if (running_count==target_num){
     r = 1; //user input is correct
