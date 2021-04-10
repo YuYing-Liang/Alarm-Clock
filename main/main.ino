@@ -137,10 +137,12 @@ void main_loop() {
     game_loop();
   }
 }
+//int game_num=0;
 void game_loop()
 {
   if(!game_started) {
-    game = random(0, 4);
+    game = random(0, 3);
+//    game = game_num;
     game_started = true;
     number_of_tries = 0;
   }
@@ -153,6 +155,7 @@ void game_loop()
       isAlarmOn = false; 
       game_started = false;  
       game_not_completed = true;
+//      game_num = (game_num+1)%4;
     } else {
       number_of_tries += 1;
     }
