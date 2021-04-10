@@ -1,4 +1,4 @@
-# Alarmify
+# Siren
 
 Gamify your alarm-clock, make waking up fun!
 
