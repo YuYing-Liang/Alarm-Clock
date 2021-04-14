@@ -34,10 +34,10 @@ enum gameType {
 };
 
 #define LEN_NUMS 8
-#define NUM_OPS 3
+#define NUM_OPS 4
 #define START_BUTTON 29
 
-String op_chars[NUM_OPS] = {"+","-","*"};
+String op_chars[NUM_OPS] = {"+","-","*","/"};
 int num_order[LEN_NUMS];
 String correct_order = "";
 
@@ -117,9 +117,7 @@ void setup()
   */
 
   // interrupt initialization
-  attachInterrupt(digitalPinToInterrupt(settings[0]), settingMode1, FALLING);
-  attachInterrupt(digitalPinToInterrupt(settings[1]), settingMode2, FALLING);
-  attachInterrupt(digitalPinToInterrupt(settings[2]), settingMode3, FALLING);
+  attachInterrupts();
 
   //alarm clock initialization
   isAlarmOn = false;
@@ -134,7 +132,7 @@ void setup()
 }
 
 void loop() {
-  main_loop();
+  game_loop();
 }
 
 void main_loop() {
@@ -157,10 +155,11 @@ void main_loop() {
     game_loop();
   }
 }
-//int game_num=0;
+int game_num=1;
 void game_loop()
 {
-  noInterrupts(); //turn off interrupts while game is running
+  //noInterrupts(); //turn off interrupts while game is running
+  detachInterrupts();
   if(!game_started) { //select a random game to run
     game = random(0, 3);
     game_started = true;
@@ -175,7 +174,9 @@ void game_loop()
       isAlarmOn = false; 
       game_started = false;  
       game_not_completed = true;
-      interrupts(); //turn interrupts back on
+//      game = (game+1)%4;
+      //interrupts(); //turn interrupts back on
+      attachInterrupts();
     } else { //keep track of number of tries in game
       number_of_tries += 1;
     }
@@ -252,12 +253,12 @@ bool counting(){
   String msg1[] = {"Put indices in", "correct order", curr_count, "answer: "};
   lcd_print(msg1, 4, 2000);
   
-  //String ans="";
-  //int prev_states[LEN_NUMS];
-
-  for(int i=0; i < LEN_NUMS; i++){
-    prev_states[i] = 0;
-  }
+//  String ans="";
+//  int prev_states[LEN_NUMS];
+//
+//  for(int i=0; i < LEN_NUMS; i++){
+//    prev_states[i] = 0;
+//  }
   /*
   num_order: randomized list of numbers, global var
   state: 
@@ -485,7 +486,7 @@ String poll_buttons() {
   while (1){
     my_time = millis(); //check current time
     
-    if(ans.length() >= LEN_NUMS or my_time - start > 50000) {
+    if(answer.length() >= LEN_NUMS or my_time - start > 50000) {
       break; //50 second timeout, 8 digit end condition
     }
 
@@ -505,8 +506,18 @@ String poll_buttons() {
   }
   return answer;
 }
+// Interrupt Initialization
+void attachInterrupts() {
+  attachInterrupt(digitalPinToInterrupt(settings[0]), settingMode1, FALLING);
+  attachInterrupt(digitalPinToInterrupt(settings[1]), settingMode2, FALLING);
+  attachInterrupt(digitalPinToInterrupt(settings[2]), settingMode3, FALLING);
+}
+void detachInterrupts(){
+  detachInterrupt(digitalPinToInterrupt(settings[0]), settingMode1, FALLING);
+  detachInterrupt(digitalPinToInterrupt(settings[1]), settingMode2, FALLING);
+  detachInterrupt(digitalPinToInterrupt(settings[2]), settingMode3, FALLING);
+}
 // ISRs
-
 //settingModes are for setting the alarm clock
 void settingMode1(){
   if(settings_mode >= 1){
@@ -517,15 +528,19 @@ void settingMode1(){
   }
 }
 void settingMode2(){
-  settings_mode = 2;
-  settings_col = (settings_col + 1) % 3;
+  if (settings_mode >= 1) {
+    settings_mode = 2;
+    settings_col = (settings_col + 1) % 3;
+  }
 }
 void settingMode3(){
-  settings_mode = 3;
-  switch(settings_col){
-    case 0: settings_val[0] = (settings_val[0] + 1) % 7; break;
-    case 1: settings_val[1] = (settings_val[1] + 1) % 24; break;
-    case 2: settings_val[2] = (settings_val[2] + 5) % 60; break;
+  if (settings_mode >= 1) {
+    settings_mode = 3;
+    switch(settings_col){
+      case 0: settings_val[0] = (settings_val[0] + 1) % 7; break;
+      case 1: settings_val[1] = (settings_val[1] + 1) % 24; break;
+      case 2: settings_val[2] = (settings_val[2] + 5) % 60; break;
+    }
   }
 }
 // ------------------------------------------------ ALARM & CLOCK CODE --------------------------------------------------------------------------
